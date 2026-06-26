@@ -80,13 +80,10 @@ struct ContentView: View {
                     .foregroundStyle(selectedGame.cartridgePalette.accent)
             }
 
-            Picker("Game", selection: $selectedGame) {
-                ForEach(MegaManGame.allCases) { game in
-                    Text(game.shortTitle).tag(game)
-                }
-            }
-            .pickerStyle(.segmented)
-            .tint(selectedGame.cartridgePalette.accent)
+            GameSegmentedControl(
+                selection: $selectedGame,
+                accentColor: selectedGame.cartridgePalette.accent
+            )
         }
         .padding(.horizontal, 18)
         .padding(.top, 24)
@@ -116,7 +113,11 @@ private struct StageTile: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 10) {
-                BossArtwork(track: track, initials: initials)
+                GeometryReader { proxy in
+                    BossArtwork(track: track, initials: initials)
+                        .frame(width: proxy.size.width, height: proxy.size.width)
+                }
+                .aspectRatio(1, contentMode: .fit)
                 .overlay(alignment: .topTrailing) {
                     statusBadge
                 }
@@ -184,6 +185,49 @@ private struct StageTile: View {
 
     private var accessibilityLabel: String {
         track.isPlayable ? "Play \(track.bossName), \(track.game.title)" : "\(track.bossName), audio missing"
+    }
+}
+
+private struct GameSegmentedControl: View {
+    @Binding var selection: MegaManGame
+    let accentColor: Color
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(MegaManGame.allCases) { game in
+                Button {
+                    selection = game
+                } label: {
+                    Text(game.shortTitle)
+                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 42)
+                        .background(segmentBackground(for: game))
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(game.title)
+                .accessibilityValue(selection == game ? "Selected" : "")
+            }
+        }
+        .padding(4)
+        .background(.white.opacity(0.10))
+        .clipShape(Capsule())
+    }
+
+    @ViewBuilder
+    private func segmentBackground(for game: MegaManGame) -> some View {
+        if selection == game {
+            Capsule()
+                .fill(.black.opacity(0.28))
+                .overlay {
+                    Capsule()
+                        .stroke(accentColor, lineWidth: 2)
+                }
+        } else {
+            Color.clear
+        }
     }
 }
 
@@ -356,6 +400,8 @@ private struct BossArtwork: View {
 
     var body: some View {
         ZStack {
+            Color.black
+
             if let artwork = bundleImage(named: track.artworkName) {
                 artwork
                     .resizable()
@@ -369,6 +415,7 @@ private struct BossArtwork: View {
                 )
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .aspectRatio(1, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .clipped()
