@@ -57,12 +57,7 @@ final class AudioPlayerViewModel: ObservableObject {
     }
 
     private func start(_ track: MusicTrack) {
-        guard let resourceName = track.resourceName,
-              let url = Bundle.main.url(
-                forResource: resourceName,
-                withExtension: "flac",
-                subdirectory: track.game.audioResourceSubdirectory
-              ) else {
+        guard let url = audioURL(for: track) else {
             errorMessage = "Could not find \(track.bossName) in the app bundle."
             return
         }
@@ -81,6 +76,41 @@ final class AudioPlayerViewModel: ObservableObject {
             isPlaying = false
             deactivateAudioSession()
         }
+    }
+
+    private func audioURL(for track: MusicTrack) -> URL? {
+        guard let audioFileName = track.audioFileName,
+              let resourceURL = Bundle.main.resourceURL else {
+            return nil
+        }
+
+        let fileManager = FileManager.default
+        let expectedURL = resourceURL
+            .appendingPathComponent(track.game.audioResourceSubdirectory, isDirectory: true)
+            .appendingPathComponent(audioFileName)
+
+        if fileManager.fileExists(atPath: expectedURL.path) {
+            return expectedURL
+        }
+
+        let flattenedURL = resourceURL.appendingPathComponent(audioFileName)
+        if fileManager.fileExists(atPath: flattenedURL.path) {
+            return flattenedURL
+        }
+
+        guard let enumerator = fileManager.enumerator(
+            at: resourceURL,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ) else {
+            return nil
+        }
+
+        for case let url as URL in enumerator where url.lastPathComponent == audioFileName {
+            return url
+        }
+
+        return nil
     }
 
     private func activateAudioSession() throws {

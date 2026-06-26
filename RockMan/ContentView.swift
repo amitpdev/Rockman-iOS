@@ -376,8 +376,7 @@ private struct BossArtwork: View {
 }
 
 private func bundleImage(named name: String?) -> Image? {
-    guard let name,
-          let url = Bundle.main.url(forResource: name, withExtension: "png") else {
+    guard let url = imageURL(named: name) else {
         return nil
     }
 
@@ -394,6 +393,41 @@ private func bundleImage(named name: String?) -> Image? {
     #else
     return nil
     #endif
+}
+
+private func imageURL(named name: String?) -> URL? {
+    guard let name,
+          let resourceURL = Bundle.main.resourceURL else {
+        return nil
+    }
+
+    let fileManager = FileManager.default
+    let imageFileName = "\(name).png"
+    let flattenedImageFileName = URL(fileURLWithPath: imageFileName).lastPathComponent
+    let candidateURLs = [
+        resourceURL.appendingPathComponent(imageFileName),
+        resourceURL.appendingPathComponent("art").appendingPathComponent(imageFileName),
+        resourceURL.appendingPathComponent(flattenedImageFileName)
+    ]
+
+    for url in candidateURLs where fileManager.fileExists(atPath: url.path) {
+        return url
+    }
+
+    guard let enumerator = fileManager.enumerator(
+        at: resourceURL,
+        includingPropertiesForKeys: nil,
+        options: [.skipsHiddenFiles]
+    ) else {
+        return nil
+    }
+
+    for case let url as URL in enumerator
+    where url.path.hasSuffix(imageFileName) || url.lastPathComponent == flattenedImageFileName {
+        return url
+    }
+
+    return nil
 }
 
 private struct NowPlayingBar: View {
