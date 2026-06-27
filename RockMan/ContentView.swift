@@ -193,25 +193,26 @@ private struct GameSegmentedControl: View {
     let accentColor: Color
 
     var body: some View {
-        HStack(spacing: 4) {
-            ForEach(MegaManGame.allCases) { game in
-                Button {
-                    selection = game
-                } label: {
-                    Text(game.shortTitle)
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 42)
-                        .background(segmentBackground(for: game))
-                        .clipShape(Capsule())
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 4) {
+                ForEach(MegaManGame.allCases) { game in
+                    Button {
+                        selection = game
+                    } label: {
+                        Text(game.shortTitle)
+                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .frame(width: 74, height: 42)
+                            .background(segmentBackground(for: game))
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(game.title)
+                    .accessibilityValue(selection == game ? "Selected" : "")
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(game.title)
-                .accessibilityValue(selection == game ? "Selected" : "")
             }
+            .padding(4)
         }
-        .padding(4)
         .background(.white.opacity(0.10))
         .clipShape(Capsule())
     }
@@ -268,6 +269,20 @@ private extension MegaManGame {
                 shellShadow: Color(red: 0.46, green: 0.03, blue: 0.24),
                 label: Color(red: 0.16, green: 0.22, blue: 0.70),
                 accent: Color(red: 1.00, green: 0.77, blue: 0.23)
+            )
+        case .megaMan5:
+            CartridgePalette(
+                shell: Color(red: 0.10, green: 0.46, blue: 0.96),
+                shellShadow: Color(red: 0.02, green: 0.13, blue: 0.44),
+                label: Color(red: 0.97, green: 0.86, blue: 0.30),
+                accent: Color(red: 1.00, green: 0.91, blue: 0.22)
+            )
+        case .megaMan6:
+            CartridgePalette(
+                shell: Color(red: 0.16, green: 0.64, blue: 0.90),
+                shellShadow: Color(red: 0.02, green: 0.20, blue: 0.42),
+                label: Color(red: 0.98, green: 0.47, blue: 0.25),
+                accent: Color(red: 1.00, green: 0.55, blue: 0.28)
             )
         }
     }
@@ -402,7 +417,7 @@ private struct BossArtwork: View {
         ZStack {
             Color.black
 
-            if let artwork = bundleImage(named: track.artworkName) {
+            if let artwork = bundleImage(named: track.artworkName, for: track.game) {
                 artwork
                     .resizable()
                     .interpolation(.none)
@@ -422,8 +437,8 @@ private struct BossArtwork: View {
     }
 }
 
-private func bundleImage(named name: String?) -> Image? {
-    guard let url = imageURL(named: name) else {
+private func bundleImage(named name: String?, for game: MegaManGame) -> Image? {
+    guard let url = imageURL(named: name, for: game) else {
         return nil
     }
 
@@ -442,7 +457,7 @@ private func bundleImage(named name: String?) -> Image? {
     #endif
 }
 
-private func imageURL(named name: String?) -> URL? {
+private func imageURL(named name: String?, for game: MegaManGame) -> URL? {
     guard let name,
           let resourceURL = Bundle.main.resourceURL else {
         return nil
@@ -452,6 +467,9 @@ private func imageURL(named name: String?) -> URL? {
     let imageFileName = "\(name).png"
     let flattenedImageFileName = URL(fileURLWithPath: imageFileName).lastPathComponent
     let candidateURLs = [
+        resourceURL
+            .appendingPathComponent(game.artworkResourceSubdirectory, isDirectory: true)
+            .appendingPathComponent(flattenedImageFileName),
         resourceURL.appendingPathComponent(imageFileName),
         resourceURL.appendingPathComponent("art").appendingPathComponent(imageFileName),
         resourceURL.appendingPathComponent(flattenedImageFileName)

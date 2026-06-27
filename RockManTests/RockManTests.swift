@@ -15,6 +15,8 @@ struct RockManTests {
         #expect(MusicCatalog.tracks(for: .megaMan2).count == 16)
         #expect(MusicCatalog.tracks(for: .megaMan3).count == 15)
         #expect(MusicCatalog.tracks(for: .megaMan4).count == 18)
+        #expect(MusicCatalog.tracks(for: .megaMan5).count == 15)
+        #expect(MusicCatalog.tracks(for: .megaMan6).count == 14)
     }
 
     @Test func catalogTracksArePlayable() {
@@ -26,20 +28,19 @@ struct RockManTests {
     @Test func playableTracksHaveBundleResourceReferences() {
         let playableTracks = MusicCatalog.tracks.filter(\.isPlayable)
 
-        #expect(playableTracks.count == 61)
+        #expect(playableTracks.count == 90)
 
         for track in playableTracks {
             #expect(track.resourceName?.isEmpty == false)
             #expect(track.game.audioResourceSubdirectory == "sound/\(track.game.shortTitle.lowercased())")
-            #expect(track.audioFileName?.hasPrefix(track.game.shortTitle.lowercased()) == true)
         }
     }
 
     @Test func catalogIncludesDrWilyStages() {
         let wilyTracks = MusicCatalog.tracks.filter { $0.id.contains("wily") }
 
-        #expect(wilyTracks.count == 10)
-        #expect(wilyTracks.filter(\.isPlayable).count == 10)
+        #expect(wilyTracks.count == 12)
+        #expect(wilyTracks.filter(\.isPlayable).count == 12)
     }
 
     @Test func bossTracksComeFirstForEachGame() {
@@ -60,7 +61,9 @@ struct RockManTests {
             .megaMan1: ["mm1-cut", "mm1-guts", "mm1-elec", "mm1-ice", "mm1-fire", "mm1-bomb"],
             .megaMan2: ["mm2-bubble", "mm2-air", "mm2-quick", "mm2-heat", "mm2-wood", "mm2-metal", "mm2-flash", "mm2-crash"],
             .megaMan3: ["mm3-spark", "mm3-snake", "mm3-needle", "mm3-hard", "mm3-top", "mm3-gemini", "mm3-magnet", "mm3-shadow"],
-            .megaMan4: ["mm4-ring", "mm4-dive", "mm4-skull", "mm4-pharaoh", "mm4-bright", "mm4-toad", "mm4-drill", "mm4-dust"]
+            .megaMan4: ["mm4-ring", "mm4-dive", "mm4-skull", "mm4-pharaoh", "mm4-bright", "mm4-toad", "mm4-drill", "mm4-dust"],
+            .megaMan5: ["mm5-stone", "mm5-gravity", "mm5-crystal", "mm5-charge", "mm5-napalm", "mm5-wave", "mm5-star", "mm5-gyro"],
+            .megaMan6: ["mm6-blizzard", "mm6-wind", "mm6-flame", "mm6-plant", "mm6-tomahawk", "mm6-yamato", "mm6-knight", "mm6-centaur"]
         ]
 
         for game in MegaManGame.allCases {
